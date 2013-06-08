@@ -53,10 +53,10 @@ var module = module || {}
     app.getBoundingBox = function(coords, radius) {
         var mile = [0.0192, 0.01499] // 1 square mile in degrees (lat, lng)
             ,boundingBox = [
-                coords[0] - (mile[0] * radius) // xmin/left
-                ,coords[1] - (mile[1] * radius) // ymin/bottom
-                ,coords[0] + (mile[0] * radius) // xmax/right
-                ,coords[1] + (mile[1] * radius) // ymax/top
+                coords[1] - (mile[0] * radius) // xmin/left
+                ,coords[0] - (mile[1] * radius) // ymin/bottom
+                ,coords[1] + (mile[0] * radius) // xmax/right
+                ,coords[0] + (mile[1] * radius) // ymax/top
             ];
         console.log(boundingBox);
         return boundingBox;
@@ -71,7 +71,7 @@ var module = module || {}
     app.sortByDistance = function(features, coords) {
         var results = [];
         _.each(features, function(feature) {
-            feature.attributes.distance = app.getCoordDistance(coords, [feature.geometry.x, feature.geometry.y]);
+            feature.attributes.distance = app.getCoordDistance(coords, [feature.geometry.y, feature.geometry.x]);
             results.push(feature);
         });
         results.sort(function(a, b) {

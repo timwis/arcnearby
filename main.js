@@ -2,7 +2,7 @@ var arcnearby = require("./arcnearby")
     ,_ = require("underscore");
 (function(arcnearby) {
     
-    var coords = [-75.1661,39.9365]
+    var coords = [39.9365,-75.1661]
         ,boundingBox = arcnearby.getBoundingBox(coords, 1.0);
     arcnearby.query("cornerStores", boundingBox, function(response, body) {
         var data = JSON.parse(body);
