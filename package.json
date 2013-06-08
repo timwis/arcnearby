@@ -14,11 +14,8 @@
     "request": "*"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [
     "ArcGIS"
   ],
-  "license": "BSD"
+  "license": "MIT"
 }
