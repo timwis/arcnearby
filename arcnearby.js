@@ -93,19 +93,26 @@ var module = module || {}
     };
     
     /**
-     * Executes HTTP request to ArcGIS REST API
+     * Main wrapper for library
+     * Generates bounding box, executes HTTP request to ArcGIS REST API, sorts by distance
      * @param {String} service Which ArcGIS service to query
      * @param {Array} boundingBox The xmin,ymin,xmax,ymax bounding box to look for features within
      * @param {Function} successCallback
      * @param {Function} errorCallback
      */
-    app.query = function(service, boundingBox, successCallback, errorCallback) {
-        var params = _.clone(app.options.params);
-        params.geometry = boundingBox;
-        var url = app.options.apiHost + app.options.apiPath + (app.options.services[service] || "") + "?" + app.serialize(params);
+    app.getNearby = function(service, coords, radius, successCallback, errorCallback) {
+        var url = url = app.options.apiHost + app.options.apiPath + (app.options.services[service] || "")
+            ,params = _.clone(app.options.params);
+        params.geometry = app.getBoundingBox(coords, radius); // Get bounding box
+        url += "?" + app.serialize(params);
         console.log(url);
-        request(url, function(error, response, body) {
-            (error) ? errorCallback(response, body) : successCallback(response, body);
+        request(url, function(error, response, body) { // Query REST service
+            if(error) {
+                errorCallback(response, body);
+            } else {
+                var data = JSON.parse(body);
+                successCallback((data.features !== undefined) ? app.sortByDistance(data.features, coords) : {}); // Sort by distance
+            }
         });
     };
 
