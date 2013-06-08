@@ -14,7 +14,7 @@
         "npm": "1.2.23"
     },
     "dependencies": {
-        "underscore": "*"
+        "underscore": "*",
         "request": "*"
     }
 }
