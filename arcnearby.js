@@ -1,29 +1,8 @@
-var module = module || {}
+var config = require("./config")
     ,_ = require("underscore")
     ,request = require("request");
 
-(function(app, _, request) {
-
-    app.options = {
-        apiHost: "http://gis.phila.gov"
-        ,apiPath: "/arcgis/rest/services"
-        ,services: {
-            farmersMarkets: "/PhilaGov/Farmers_Markets/MapServer/0/query"
-            ,cornerStores: "/PhilaGov/Healthy_Corner_Stores/MapServer/0/query"
-        }
-        ,params: {
-            where: "1=1"
-            ,outFields: "*"
-            ,geometry: ""
-            ,geometryType: "esriGeometryEnvelope"
-            ,spatialRel: "esriSpatialRelContains"
-            ,inSR: "4326"
-            ,outSR: "4326"
-            ,returnGeometryOnly: "True"
-            ,returnIdsOnly: "False"
-            ,f: "pjson"
-        }
-    };
+(function(app, config, _, request) {
     
     /**
      * Gets distance in miles between two latitude/longitude coordinates
@@ -58,7 +37,7 @@ var module = module || {}
                 ,coords[1] + (mile[0] * radius) // xmax/right
                 ,coords[0] + (mile[1] * radius) // ymax/top
             ];
-        console.log(boundingBox);
+        //console.log(boundingBox);
         return boundingBox;
     };
     
@@ -96,16 +75,18 @@ var module = module || {}
      * Main wrapper for library
      * Generates bounding box, executes HTTP request to ArcGIS REST API, sorts by distance
      * @param {String} service Which ArcGIS service to query
-     * @param {Array} boundingBox The xmin,ymin,xmax,ymax bounding box to look for features within
+     * @param {Array} coords Lat/lng of the center point to look around
+     * @param {Number} radius Radius to look within in square miles
+     * @param {Object} [overrideParams] Optional ArcGIS REST API parameters to override the query with (see config.js for params)
      * @param {Function} successCallback
      * @param {Function} errorCallback
      */
-    app.getNearby = function(service, coords, radius, successCallback, errorCallback) {
-        var url = url = app.options.apiHost + app.options.apiPath + (app.options.services[service] || "")
-            ,params = _.clone(app.options.params);
+    app.getNearby = function(service, coords, radius, overrideParams, successCallback, errorCallback) {
+        var url = config.apiHost + config.apiPath + (config.services[service] || "")
+            ,params = ( ! _.isEmpty(overrideParams)) ? _.defaults(overrideParams, config.params) : _.clone(config.params);
         params.geometry = app.getBoundingBox(coords, radius); // Get bounding box
         url += "?" + app.serialize(params);
-        console.log(url);
+        //console.log(url);
         request(url, function(error, response, body) { // Query REST service
             if(error) {
                 errorCallback(response, body);
@@ -116,4 +97,4 @@ var module = module || {}
         });
     };
 
-})(module.exports, _, request);
+})(module.exports, config, _, request);
