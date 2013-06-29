@@ -1,5 +1,5 @@
 /**
- * Example usage of arcnearby
+ * Example usage of arcnearby using callback. Alternatively, the method returns a promise
  */
 var arcnearby = require("./arcnearby")
     ,_ = require("underscore");

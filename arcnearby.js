@@ -1,8 +1,9 @@
 var config = require("./config")
     ,_ = require("underscore")
-    ,request = require("request");
+    ,request = require("request")
+    ,Promise = require("node-promise").Promise;
 
-(function(app, config, _, request) {
+(function(app, config, _, request, Promise) {
     
     /**
      * Gets distance in miles between two latitude/longitude coordinates
@@ -60,41 +61,35 @@ var config = require("./config")
     };
     
     /**
-     * Basic serialize helper function, converts object to querystring
-     * @param {Object} obj Object of params
-     * @returns {String} Querystring of params
-     */
-    app.serialize = function(obj) {
-        var str = [];
-        for(var p in obj)
-            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-        return str.join("&");
-    };
-    
-    /**
      * Main wrapper for library
      * Generates bounding box, executes HTTP request to ArcGIS REST API, sorts by distance
-     * @param {String} service Which ArcGIS service to query
+     * @param {String} service Which ArcGIS service to query. Use either a full service URL or a reference to the config.js services
      * @param {Array} coords Lat/lng of the center point to look around
      * @param {Number} radius Radius to look within in square miles
      * @param {Object} [overrideParams] Optional ArcGIS REST API parameters to override the query with (see config.js for params)
-     * @param {Function} successCallback
-     * @param {Function} errorCallback
+     * @param {Function} [successCallback]
+     * @param {Function} [errorCallback]
+     * @returns {Promise}
      */
     app.getNearby = function(service, coords, radius, overrideParams, successCallback, errorCallback) {
-        var url = config.apiHost + config.apiPath + (config.services[service] || "")
+        var promise = new Promise()
+            ,url = service.indexOf("http://") !== -1 ? service : config.apiHost + config.apiPath + (config.services[service] || "")
             ,params = ( ! _.isEmpty(overrideParams)) ? _.defaults(overrideParams, config.params) : _.clone(config.params);
-        params.geometry = app.getBoundingBox(coords, radius); // Get bounding box
-        url += "?" + app.serialize(params);
-        //console.log(url);
-        request(url, function(error, response, body) { // Query REST service
-            if(error) {
-                errorCallback(response, body);
-            } else {
-                var data = JSON.parse(body);
-                successCallback((data.features !== undefined) ? app.sortByDistance(data.features, coords) : {}); // Sort by distance
+        params.geometry = app.getBoundingBox(coords, radius).join(","); // Get bounding box
+        request({url: url, qs: params}, function(error, response, body) { // Query REST service
+            if(error || response.statusCode !== 200) {
+                promise.reject(response, body);
+                if(errorCallback) errorCallback(response, body);
             }
+            var data = JSON.parse(body)
+                ,sortedData = {};
+            if(data.features !== undefined) {
+                sortedData = app.sortByDistance(data.features, coords); // Sort by distance
+            }
+            promise.resolve(sortedData);
+            if(successCallback) successCallback(sortedData);
         });
+        return promise;
     };
 
-})(module.exports, config, _, request);
+})(module.exports, config, _, request, Promise);
