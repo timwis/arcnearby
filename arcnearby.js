@@ -80,14 +80,15 @@ var config = require("./config")
             if(error || response.statusCode !== 200) {
                 promise.reject(response, body);
                 if(errorCallback) errorCallback(response, body);
+            } else {
+                var data = JSON.parse(body)
+                    ,sortedData = {};
+                if(data.features !== undefined) {
+                    sortedData = app.sortByDistance(data.features, coords); // Sort by distance
+                }
+                promise.resolve(sortedData);
+                if(successCallback) successCallback(sortedData);
             }
-            var data = JSON.parse(body)
-                ,sortedData = {};
-            if(data.features !== undefined) {
-                sortedData = app.sortByDistance(data.features, coords); // Sort by distance
-            }
-            promise.resolve(sortedData);
-            if(successCallback) successCallback(sortedData);
         });
         return promise;
     };

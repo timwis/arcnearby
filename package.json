@@ -1,7 +1,7 @@
 {
   "name": "arcnearby",
   "description": "Generate bounding box around center point and search ArcGIS REST service for features within it, sorted by distance",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "homepage": "https://github.com/timwis/arcnearby",
   "author": "Tim Wisniewski, Sarah Cordivano",
   "main": "arcnearby",
